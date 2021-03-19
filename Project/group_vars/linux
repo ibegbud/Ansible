@@ -1,0 +1,4 @@
+---
+ansible_user: "Username" # Name of Ansible ansible_user
+ansible_port: "SSH port" #Port ansible will be connecting with.
+...

@@ -1,0 +1,54 @@
+
+- name: apt-get update 
+  apt:
+    update_cache: yes
+    
+- name: Install list of packages
+  apt:
+    name: "{{ item }}"
+  loop:
+    - apt-transport-https
+    - software-properties-common
+    - wget
+     
+- name: Install Grafana ggp key
+  shell:
+    cmd: wget -q -O - https://packages.grafana.com/gpg.key | apt-key add -
+
+- name: Add to repository for stable release
+  shell:
+    cmd: echo "deb https://packages.grafana.com/oss/deb stable main" | sudo tee -a /etc/apt/sources.list.d/grafana.list
+    
+- name: apt-get update 
+  apt:
+    update_cache: yes
+
+- name: Install Grafana
+  apt:
+    package: grafana
+    state: latest
+  notify: Reload systemd
+
+#- name: daemon reload to pick up config for the Grafana config
+#  systemd:
+#    daemon_reload: yes
+
+- name: "Grafana server started"
+  service:
+    name: grafana-server
+    enabled: true
+    state: started
+
+- name: Enable Grafana service to start at system reboot.
+  shell:
+    cmd: systemctl enable grafana-server.service
+  notify: Restart the Grafana service.
+
+- name: Check if Grafana is accessible.
+  uri:
+    url: http://127.0.0.1:3000
+    method: GET
+    status_code: 200
+
+
+

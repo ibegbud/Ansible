@@ -1,0 +1,21 @@
+
+---
+- hosts: grafana_server
+  become: yes
+  become_user: root
+  become_method: sudo
+  roles:
+    - node_exporter
+    - prometheus
+    - grafana
+    - alertmanager
+
+- hosts: linux_systems
+  become: yes
+  become_user: root
+  become_method: sudo
+  roles:
+    - node_exporter
+    
+    
+...

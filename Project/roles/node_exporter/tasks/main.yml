@@ -1,0 +1,51 @@
+
+- name: Creating node_exporter user group
+  group: name="{{groupId}}"
+  become: true
+
+- name: Creating node_exporter user
+  user:
+    name: "{{ userId }}"
+    group: "{{ groupId }}"
+    system: yes
+    shell: "/sbin/nologin "
+    comment: "{{ userId }} nologin User"
+    createhome: "no"
+    state: present
+
+- name: Download and Install Prometheus node exporter to the /tmp/ directory
+  unarchive:
+    src: "https://github.com/prometheus/node_exporter/releases/download/v{{ version }}/node_exporter-{{ version }}.linux-amd64.tar.gz"
+    dest: /tmp/
+    remote_src: yes
+
+- name: Copy Prometheus node exporter binary file to bin directory
+  copy:
+    src: "/tmp/node_exporter-{{ version }}.linux-amd64/node_exporter"
+    dest: "/usr/local/bin/node_exporter"
+    owner: "{{userId}}"
+    group: "{{groupId}}"
+    remote_src: yes
+    mode: 0755
+
+- name: Delete downloaded node exporter file in the tmp directory
+  file:
+    path: '/tmp/node_exporter-{{ version }}.linux-amd64'
+    state: absent
+
+- name: Copy systemd service init file from Ansible system to linux nodes
+  template:
+    src: init.service.j2
+    dest: /etc/systemd/system/node_exporter.service
+
+- name: Start node_exporter service
+  service:
+    name: node_exporter
+    state: started
+    enabled: yes
+
+- name: Check if node exporter emits metrices
+  uri:
+    url: http://127.0.0.1:9100/metrics
+    method: GET
+    status_code: 200
