@@ -1,0 +1,5 @@
+
+ansible_user: {Windows system login username}
+ansible_password: {Windows login password}
+ansible_connection: winrm
+ansible_winrm_server_cert_validation: ignore

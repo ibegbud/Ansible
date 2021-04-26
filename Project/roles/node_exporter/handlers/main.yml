@@ -1,0 +1,5 @@
+
+- name: Restart reload_daemon
+  command: systemctl daemon-reload
+  listen: systemd_reload
+

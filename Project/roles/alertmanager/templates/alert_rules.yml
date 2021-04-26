@@ -1,0 +1,148 @@
+
+groups:
+  - name: All systems shutdown
+    rules:
+    - alert: PrometheusAllTargetsMissing
+      expr: count by (job) (up) == 0
+      for: 1m
+      annotations:
+        summary: Prometheus all targets missing (instance {{ $labels.instance }})
+        description: A Prometheus job does not have living target anymore.\n  VALUE = {{ $value }}\n  
+      labels:
+        severity: critical
+
+  - name: System Shutdown/Node_exporter down
+    rules:
+    - alert: Node down
+      expr: up{job="node_exporter"} == 0
+      for: 2m
+      annotations:
+        title: Node {{ $labels.instance }} is down
+        description: Failed to scrape {{ $labels.job }} on {{ $labels.instance }} for more than 2 minutes. Node seems down.
+      labels:
+        severity: information
+
+  - name: Prometheus not connected to alertmanager
+    rules:
+    - alert: PrometheusNotConnectedToAlertmanager
+      expr: prometheus_notifications_alertmanagers_discovered < 1
+      for: 1m
+      annotations:
+        summary: Prometheus not connected to alertmanager (instance {{ $labels.instance }})
+        description: Prometheus cannot connect the alertmanager\n  VALUE = {{ $value }}\n  
+      labels:
+        severity: information
+
+  - name: Alertmanager is failing sending notifications
+    rules:
+    - alert: PrometheusAlertmanagerNotificationFailing
+      expr: rate(alertmanager_notifications_failed_total[1m]) > 0
+      for: 0m
+      annotations:
+        summary: Prometheus AlertManager notification failing (instance {{ $labels.instance }})
+        description: Alertmanager is failing sending notifications\n  VALUE = {{ $value }}\n  
+      labels:
+        severity: information
+
+  - name: Host out of memory
+    rules:
+      #Node memory is filling up (< 20% left).
+    - alert: HostOutOfMemory
+      expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 < 20
+      for: 2m
+      annotations:
+        summary: Host out of memory (instance {{ $labels.instance }})
+        description: Node memory is filling up (< 20% left)\n  VALUE = {{ $value }}\n   
+      labels:
+        severity: warning
+
+  - name: Host out of Disk
+    rules:
+      #Disk is almost full (< 20% left). Send alert if Disk size is less than 20% capacity
+    - alert: HostOutOfDiskSpace
+      expr: (node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes < 20 and ON (instance, device, mountpoint) node_filesystem_readonly == 0
+      for: 2m
+      annotations:
+        summary: Host out of disk space (instance {{ $labels.instance }})
+        description: Disk is almost full (< 20% left)\n  VALUE = {{ $value }}\n  
+      labels:
+        severity: warning
+
+  - name: Host high CPU load. CPU load is > 80%
+    rules:
+    - alert: HostHighCpuLoad
+      expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[2m])) * 100) > 80
+      for: 0m
+      labels:
+        severity: warning
+      annotations:
+        summary: Host high CPU load (instance {{ $labels.instance }})
+        description: CPU load is > 80%\n  VALUE = {{ $value }}\n  
+
+  - name: Host swap is filling up. Swap is filling up (>80%)
+    rules:
+    - alert: HostSwapIsFillingUp
+      expr: (1 - (node_memory_SwapFree_bytes / node_memory_SwapTotal_bytes)) * 100 > 80
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: Host swap is filling up (instance {{ $labels.instance }})
+        description: Swap is filling up (>80%)\n  VALUE = {{ $value }}\n  
+
+  - name: Windows systems collector error
+    rules:
+    - alert: WindowsServerCollectorError
+      expr: windows_exporter_collector_success == 0
+      for: 0m
+      labels:
+        severity: critical
+      annotations:
+        summary: Windows Server collector Error (instance {{ $labels.instance }})
+        description: Collector {{ $labels.collector }} was not successful\n  VALUE = {{ $value }}\n  
+
+  - name: Windows systems service status
+    rules:
+    - alert: WindowsServerServiceStatus
+      expr: windows_service_status{status="ok"} != 1
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: Windows Server service Status (instance {{ $labels.instance }})
+        description: Windows Service state is not OK\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}
+
+  - name: Windows systems CPU Usage. CPU Usage is more than 70%
+    rules:
+    - alert: WindowsServerCpuUsage
+      expr: 100 - (avg by (instance) (rate(windows_cpu_time_total{mode="idle"}[2m])) * 100) > 70
+      for: 0m
+      labels:
+        severity: warning
+      annotations:
+        summary: Windows Server CPU Usage (instance {{ $labels.instance }})
+        description: CPU Usage is more than 70%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}
+
+  - name: Windows systems Memory Usage. Memory usage is more than 70%
+    rules:
+    - alert: WindowsServerMemoryUsage
+      expr: 100 - ((windows_os_physical_memory_free_bytes / windows_cs_physical_memory_bytes) * 100) > 70
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: Windows Server memory Usage (instance {{ $labels.instance }})
+        description: Memory usage is more than 90%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}
+  
+  - name: Windows systems Disk space. Disk usage is more than 70%
+    rules:
+    - alert: WindowsServerDiskSpaceUsage
+      expr: 100.0 - 100 * ((windows_logical_disk_free_bytes / 1024 / 1024 ) / (windows_logical_disk_size_bytes / 1024 / 1024)) > 80
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: Windows Server disk Space Usage (instance {{ $labels.instance }})
+        description: Disk usage is more than 80%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}
+
+  

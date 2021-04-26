@@ -1,0 +1,55 @@
+
+- name: Creating alertmanager user group
+  group: name="{{groupId}}"
+  become: true
+
+- name: Creating alertmanager user
+  user:
+    name: "{{ userId }}"
+    group: "{{ groupId }}"
+    system: yes
+    shell: "/sbin/nologin "
+    comment: "{{ userId }} nologin User"
+    createhome: "no"
+    state: present
+
+- name: Download and unarchive alertmanager to the /tmp/ directory
+  unarchive:
+    src: "https://github.com/prometheus/alertmanager/releases/download/v{{ version }}/alertmanager-{{ version }}.linux-amd64.tar.gz"
+    dest: /tmp/
+    remote_src: yes
+
+- name: Copy alertmanager binary files to bin directory
+  copy:
+    src: "/tmp/alertmanager-{{ version }}.linux-amd64/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    owner: "{{ userId }}"
+    group: "{{ groupId }}"
+    remote_src: yes
+    mode: 0755
+  loop: 
+    - amtool
+    - alertmanager
+
+- name: Delete downloaded alertmanager file in the tmp directory
+  file:
+    path: '/tmp/alertmanager-{{ version }}.linux-amd64'
+    state: absent
+
+- name: Copy systemd service init file from Ansible system to linux nodes
+  template:
+    src: init.service.j2
+    dest: /etc/systemd/system/alertmanager.service
+  notify: Reload systemd
+
+- name: Start alertmanager service
+  service:
+    name: alertmanager
+    state: started
+    enabled: yes
+
+- name: Check if the alertmanager service starts successfully
+  uri:
+    url: http://127.0.0.1:9093
+    method: GET
+    status_code: 200

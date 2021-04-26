@@ -1,0 +1,29 @@
+---
+- name: create node_exporter download directory
+  win_file:
+    path: C:\node_exporter
+    state: directory
+
+- name: Download the node_exporter .msi installer
+  win_get_url:
+    url: https://github.com/prometheus-community/windows_exporter/releases/download/v0.16.0/windows_exporter-0.16.0-386.msi
+    dest: C:\node_exporter\windows_exporter-0.16.0-386.msi
+
+- name: Install MSI
+  win_package:
+    path: C:\node_exporter\windows_exporter-0.16.0-386.msi
+    state: present
+
+- name: Start WMI service
+  win_service: 
+    name: windows_exporter
+    state: started
+
+- name: Check if node exporter emits metrices
+  win_get_url:
+    url: http://127.0.0.1:9182/metrics
+    method: GET
+    status_code: 200
+
+
+
