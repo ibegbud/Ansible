@@ -16,7 +16,7 @@ route:
   receiver: 
 
 receivers:
-- name: CECAD-IT
+- name: 
   email_configs:
   - to: 
     from: 
