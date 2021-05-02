@@ -1,26 +1,26 @@
 
 
 global:
-  smtp_smarthost: 'smtp.gmail.com:587'
-  smtp_from: 'AlertManager <cecadgrafana@gmail.com>'
+  smtp_smarthost: 
+  smtp_from: 
   smtp_require_tls: true
-  smtp_hello: 'alertmanager'
-  smtp_auth_username: 'cecadgrafana@gmail.com'
-  smtp_auth_password: 'G3rm0ny1sB30uty'
+  smtp_hello: 
+  smtp_auth_username: 
+  smtp_auth_password: 
 
 route:
   group_by: ['instance', 'alert']
   group_wait: 30s
   group_interval: 5m
   repeat_interval: 3h
-  receiver: CECAD-IT
+  receiver: 
 
 receivers:
 - name: CECAD-IT
   email_configs:
-  - to: cibegbu@uni-koeln.de, Peter.Zentis@uni-koeln.de
-    from: cecadgrafana@gmail.com
-    smarthost: smtp.gmail.com:587
-    auth_username: "cecadgrafana@gmail.com"
-    auth_identity: "cecadgrafana@gmail.com"
-    auth_password: "G3rm0ny1sB30uty"
+  - to: 
+    from: 
+    smarthost: 
+    auth_username: 
+    auth_identity: 
+    auth_password: 
